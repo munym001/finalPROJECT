@@ -1,0 +1,308 @@
+ <!doctype html>
+<html>
+<head>
+<title>Maggie's Abstract Art</title>
+<script>
+	var canvas;
+	var context;
+	var shapes = []
+	var timer;
+	var timerTwo;
+	var possibleShapes = ['drop','triangle','square','circle','cloud'];
+	var audio;
+	var textColor = 'hsl(' + 360 * Math.random() + ', 50%, 50%)';
+	var mouseImg;
+	
+	var mousePos
+	{
+		x : 0;
+		y: 0;
+	}
+	
+    var runAnimation = 
+	{
+		value: true
+    };
+	
+	function Shape(x, y, color) 
+	{
+		this.x = x;
+		this.y = y;
+		this.size = Math.random()*20+5;
+		this.dx = Math.random()*4-2;
+		this.dy = Math.random()*4-2;
+		this.color = color;
+		this.shape = possibleShapes[Math.floor(Math.random()*possibleShapes.length)];
+	}
+	
+    function init() 
+	{
+        canvas = document.getElementById('canvas');
+        context = canvas.getContext("2d");
+ 
+        window.addEventListener('resize', resizeCanvas, false);
+        window.addEventListener('orientationchange', resizeCanvas, false);
+		
+		document.onkeydown = updateKeys;
+		
+		canvas.addEventListener('mousemove', function(evt) 
+		{
+			mousePos = getMousePos(canvas, evt);
+		}, false);
+		
+		canvas.onmousedown = function(e)
+		{
+			
+			textColor = 'hsl(' + 360 * Math.random() + ', 50%, 50%)';
+		}
+		
+		timer = setInterval(resizeCanvas, 20);
+		timerTwo = setInterval(newShape, 200);
+		
+		try
+		{
+			audio = new Audio('http://www.bensound.org/bensound-music/bensound-scifi.mp3');
+			audio.play();
+		}
+		catch(e)
+		{	}
+    }
+
+	updateKeys = function(e)
+	{
+	
+		currentKey = e.keyCode;
+		
+		
+		if(currentKey == '32')
+		{
+			
+			runAnimation.value = !runAnimation.value;
+			
+			if(runAnimation.value) 
+			{
+				resizeCanvas();
+				
+				if(audio != null)
+					audio.play();
+			}
+			else
+			{
+				if(audio != null)
+					audio.pause();
+			}
+		}
+	}	
+	
+	function getMousePos(canvas, evt) 
+	{
+        return {
+          x: evt.clientX,
+          y: evt.clientY
+        };
+    }
+	
+	
+	function drawMouse(x,y)
+	{
+		try
+		{
+			
+			if(mouseImg == null)
+			{
+				mouseImg = new Image();
+
+				mouseImg.onload = function() 
+				{
+					context.drawImage(mouseImg, x, y);
+				};
+				mouseImg.src = 'http://dc224.4shared.com/img/LB_TWO5-/s7/133593e9ee0/Orange-shine-psd52742';
+			}
+			else
+			{
+				context.drawImage(mouseImg, x, y);
+			}
+		}
+		catch(e)
+		{	}
+	}
+	
+	function newShape() 
+	{
+		if(runAnimation.value && shapes.length < 250)
+		{
+			var x = Math.random() * canvas.width;
+			var y = Math.random() * canvas.height;
+			var colors = ["Salmon", "LightSalmon", "LightCoral", "IndianRed", "Crimson", "DarkRed", "PeachPuff", "Tomato"];
+			var color = colors[Math.floor(Math.random()*colors.length)];
+			shapes.push(new Shape(x, y, color));
+		}
+	}
+	  
+	function drawCircle(circle) 
+	{
+		context.beginPath();
+		context.arc(circle.x, circle.y, circle.size, 0, degreesToRadians(360), true);
+		context.fillStyle = circle.color;
+		context.globalCompositeOperation="lighter";
+		context.fill();
+	}
+	  
+	function drawSquare(square) 
+	{
+		context.beginPath();
+		context.fillStyle = square.color;
+		context.fillRect(square.x, square.y, square.size, square.size);
+    }	
+	
+	function drawTriangle(triangle) 
+	{
+		context.beginPath();
+		context.fillStyle = triangle.color;
+		context.moveTo(triangle.x+triangle.size,triangle.y);
+		context.lineTo(triangle.x,triangle.y);
+		context.lineTo(triangle.x,triangle.y+triangle.size);
+		context.closePath();
+		context.fill();
+	}
+
+	function drawCloud(cloud)
+	{
+		context.beginPath();
+		context.moveTo(cloud.x, cloud.y);
+		context.bezierCurveTo(cloud.x-100, cloud.y+60, cloud.x-20, cloud.y+80, cloud.x+60, cloud.y+70);
+		context.bezierCurveTo(cloud.x+20, cloud.y+90, cloud.x+10, cloud.y+40, cloud.x+170, cloud.y+70);
+		context.bezierCurveTo(cloud.x+45, cloud.y+90, cloud.x+30, cloud.y+25, cloud.x+210, cloud.y+20);
+		context.bezierCurveTo(cloud.x+20, cloud.y-30, cloud.x+30, cloud.y+90, cloud.x+170, cloud.y-30);
+		context.bezierCurveTo(cloud.x+75, cloud.y-45, cloud.x+90, cloud.y-90, cloud.x+80, cloud.y-30);
+		context.bezierCurveTo(cloud.x+70, cloud.y-60, cloud.x-20, cloud.y-15, cloud.x, cloud.y);
+		context.globalCompositeOperation="lighter";
+
+	
+		context.closePath();
+		context.lineWidth = 3;
+		context.strokeStyle = cloud.color;
+		context.stroke();
+	}
+
+	function drawDrop(drop) 
+	{
+		context.beginPath();
+		context.lineJoin = 'miter';
+		context.moveTo(drop.x, drop.y);
+		context.arc(drop.x, drop.y+298, 55, 80, 50, false);
+		context.quadraticCurveTo(drop.x-3.5, drop.y+15, drop.x, drop.y);
+		context.closePath();
+		context.lineWidth = 2;
+		context.fillStyle = drop.color;
+		context.fill();
+	}
+	  
+	function drawText() 
+	{
+		context.fillStyle = textColor;
+		context.globalCompositeOperation="source-over";
+		context.font = 'bold 5em sans-serif';
+		context.textAlign = 'right';
+		context.textBaseline = "middle";
+		context.fillText('Spacebar = Pause', canvas.width-275, canvas.height-60);
+	}
+
+	function drawTextz() 
+	{
+		context.fillStyle = textColor;
+		context.globalCompositeOperation="source-over";
+		context.font = 'bold 4em sans-serif';
+		context.textAlign = 'right';
+		context.textBaseline = "middle";
+		context.fillText('Click to change text color', canvas.width-230, canvas.height-400);
+	}
+    
+	function resizeCanvas() 
+	{
+        canvas.width = window.innerWidth-20;
+        canvas.height = window.innerHeight-20;
+		
+		
+		fillBackgroundColor();
+		
+		
+		for (var i=0; i<shapes.length; i++) 
+		{
+			animate(shapes[i]);
+		}
+		
+		
+		drawText();
+		drawTextz();		 
+		
+		
+		drawMouse(mousePos.x,mousePos.y)
+    }
+	  
+	function animate(myShape) 
+	{
+		if(runAnimation.value)
+		{
+			//flip the appropriate direction if we collide with the sides
+			if (myShape.x + myShape.dx > canvas.width || myShape.x + myShape.dx < 0)
+				myShape.dx = -myShape.dx;
+			if (myShape.y + myShape.dy > canvas.height || myShape.y + myShape.dy < 0)
+				myShape.dy = -myShape.dy;
+				
+			//now update the position of the shape
+			myShape.x += myShape.dx;
+			myShape.y += myShape.dy;	
+
+			//draw the shape
+			if (myShape.shape == 'square')
+				drawSquare(myShape);
+			else if (myShape.shape == 'circle')
+				drawCircle(myShape);
+			else if (myShape.shape == 'triangle')
+				drawTriangle(myShape);
+			else if (myShape.shape == 'drop')
+				drawDrop(myShape);
+			else if (myShape.shape == 'cloud')
+				drawCloud(myShape);
+		}
+		else
+		{
+			//draw the shape but do not change its position due to us being in the 'paused' state
+			if (myShape.shape == 'square')
+				drawSquare(myShape);
+			else if (myShape.shape == 'circle')
+				drawCircle(myShape);
+			else if (myShape.shape == 'triangle')
+				drawTriangle(myShape);
+			else if (myShape.shape == 'drop')
+				drawDrop(myShape);
+			else if (myShape.shape == 'cloud')
+				drawCloud(myShape);
+		}
+    }
+	
+	function fillBackgroundColor() 
+	{
+	
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		
+		//var colors = ["white", "yellow", "blue", "red"];
+		//var bgColor = colors[Math.floor(Math.random() * colors.length)];
+		context.fillStyle = 'black';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+	}
+	
+	function degreesToRadians(degrees) {
+		//converts from degrees to radians and returns
+		return (degrees * Math.PI)/180;
+	}
+
+	window.onload = init;
+	 
+</script>
+</head>
+<body>
+<canvas id='canvas' width=500 height=500></canvas>
+</body>	  
+</html>
